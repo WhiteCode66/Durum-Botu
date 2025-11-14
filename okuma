@@ -1,1 +1,225 @@
+ 🤖 Discord Durum Kontrol Botu
 
+Discord'da **custom status**'e göre otomatik rol veren/alan gelişmiş bir bot!
+
+ 📋 Özellikler
+
+- ✅ Otomatik Rol Verme: Durumunda belirli bir metin olan herkese otomatik rol verir
+- ❌ Otomatik Rol Alma: Durumundan metni kaldıranlardan rolü otomatik alır
+- 📊 Log Sistemi: Tüm işlemleri embed mesajlarla kaydeder
+- ⚡ Hızlı Kontrol: Her 30 saniyede bir otomatik kontrol
+- 🎯 Manuel Kontrol: İstediğiniz zaman manuel kontrol yapabilirsiniz
+- 🔧 Kolay Kurulum: Slash komutlarıyla 3 adımda kurulum
+- 🛡️ Güvenli: Sadece yöneticiler ayar değiştirebilir
+
+ 🚀 kur
+
+1. Gereksinimleri Yükleyin
+
+
+pip install discord.py
+
+
+### 2. Bot Token'ı Alın
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) adresine gidin
+2. "New Application" butonuna tıklayın
+3. Botunuza bir isim verin
+4. Sol menüden "Bot" sekmesine gidin
+5. "Reset Token" butonuna tıklayın ve token'ı kopyalayın
+6. "Privileged Gateway Intents" bölümünden **3 intent'i de** açın:
+   - ✅ Presence Intent
+   - ✅ Server Members Intent
+   - ✅ Message Content Intent
+
+### 3. Botu Davet Edin
+
+1. Developer Portal'da "OAuth2" > "URL Generator" sekmesine gidin
+2. **Scopes** bölümünden seçin:
+   - ✅ `bot`
+   - ✅ `applications.commands`
+3. **Bot Permissions** bölümünden seçin:
+   - ✅ Administrator (veya en azından: Manage Roles, View Channels, Send Messages)
+4. Oluşan URL'i kopyalayıp tarayıcıda açın ve botu sunucunuza ekleyin
+
+### 4. Botu Çalıştırın
+
+```bash
+# durum_bot_gelismis.py dosyasını açın
+# 'TOKEN_BURAYA' yazan yere botunuzun tokenini yapıştırın
+
+python durum_bot_gelismis.py
+```
+
+## 📖 Kullanım
+
+### Temel Kurulum (3 Adım)
+
+Bot sunucunuzda çalıştıktan sonra şu komutları kullanın:
+
+#### 1️⃣ Rol Ayarla
+```
+/durumrol @VIP
+```
+Durumunda aranan metni olan kişilere verilecek rolü belirler.
+
+#### 2️⃣ Durum Metnini Ayarla
+```
+/durum /rakipsiz
+```
+Aranacak durum metnini belirler. Küçük/büyük harf duyarlı değildir.
+
+#### 3️⃣ Log Kanalı Ayarla (Opsiyonel)
+```
+/logkanal #durum-log
+```
+Rol verme/alma işlemlerinin kaydedileceği kanalı belirler.
+
+### Diğer Komutlar
+
+```
+/ayarlar          - Mevcut ayarları görüntüle
+/manuelkontrol    - Hemen kontrol yap (otomatik beklemeyin)
+```
+
+## 💡 Örnek Senaryolar
+
+### Senaryo 1: VIP Üyelik Sistemi
+```
+/durumrol @VIP Üye
+/durum /premium
+/logkanal #vip-log
+```
+**Sonuç**: Durumuna `/premium` yazan herkes otomatik VIP Üye rolü alır!
+
+### Senaryo 2: Takım Üyeliği
+```
+/durumrol @Takım
+/durum siyonlar
+/logkanal #takım-log
+```
+**Sonuç**: Durumunda "siyonlar" geçen herkes Takım rolü alır!
+
+### Senaryo 3: Etkinlik Katılımcısı
+```
+/durumrol @Etkinlik Katılımcısı
+/durum #etkinlik2024
+/logkanal #etkinlik-log
+```
+**Sonuç**: Durumunda "#etkinlik2024" olan herkes otomatik katılımcı olur!
+
+## 🔄 Nasıl Çalışır?
+
+1. **Bot başlatılır** ve her 30 saniyede bir tüm üyeleri kontrol eder
+2. **Üyelerin durumu kontrol edilir**:
+   - Custom status'te belirlediğiniz metin var mı?
+3. **Rol işlemleri**:
+   - ✅ Durum metni VAR + Rol YOK → **Rol verilir**
+   - ❌ Durum metni YOK + Rol VAR → **Rol alınır**
+4. **Log kaydedilir** (eğer log kanalı ayarlandıysa)
+
+## 📊 Log Sistemi
+
+### Rol Verildiğinde (Yeşil Embed)
+```
+✅ Rol Verildi
+
+👤 Üye: @Kullanıcı (123456789)
+🎭 Rol: @VIP
+📝 Durum: /rakipsiz
+```
+
+### Rol Alındığında (Kırmızı Embed)
+```
+➖ Rol Alındı
+
+👤 Üye: @Kullanıcı (123456789)
+🎭 Rol: @VIP
+📝 Sebep: Durumdan kaldırıldı
+```
+
+## ⚙️ Ayarlar Yapısı
+
+Bot, her sunucu için aşağıdaki bilgileri saklar:
+
+```python
+{
+    "rol": 123456789,           # Verilecek rol ID
+    "durum": "/rakipsiz",       # Aranacak metin
+    "log_kanal": 987654321      # Log kanalı ID (opsiyonel)
+}
+```
+
+## 🛠️ Geliştirici Notları
+
+### Kontrol Süresi Değiştirme
+
+`durum_bot_gelismis.py` dosyasında:
+```python
+@tasks.loop(seconds=30)  # ← Burayı değiştirin (örn: 60 = 1 dakika)
+async def durum_kontrol():
+```
+
+### Durum Arama Türü
+
+Bot varsayılan olarak **contains** (içerir) araması yapar:
+```python
+durum_var = aranan_durum.lower() in custom_status.lower()
+```
+
+Tam eşleşme istiyorsanız:
+```python
+durum_var = aranan_durum.lower() == custom_status.lower()
+```
+
+## 🐛 Sorun Giderme
+
+### "Komutlar görünmüyor"
+- Bot'un sunucuya eklendikten sonra yeniden başlatıldığından emin olun
+- Bot'un `applications.commands` yetkisi olduğunu kontrol edin
+- Sunucunuzdan çıkıp tekrar girin
+
+### "Roller verilmiyor"
+- Bot'un rolü, vermek istediği rolün üstünde olmalı
+- Bot'un "Manage Roles" yetkisi olduğunu kontrol edin
+- `/ayarlar` komutuyla ayarları kontrol edin
+
+### "Log mesajları gitmiyor"
+- Bot'un log kanalında "Send Messages" ve "Embed Links" yetkisi olduğunu kontrol edin
+- Log kanalının doğru ayarlandığını `/ayarlar` ile kontrol edin
+
+### "Bot offline görünüyor"
+- Token'ın doğru girildiğinden emin olun
+- 3 intent'in de Developer Portal'da açık olduğunu kontrol edin
+- Konsol çıktısında hata var mı kontrol edin
+
+## ⚠️ Önemli Notlar
+
+- 🔒 **Token'ınızı kimseyle paylaşmayın!**
+- 🤖 **Bot'lar kontrol edilmez** (sonsuz döngü önlemi)
+- 👑 **Sunucu sahibi atılamaz** (güvenlik önlemi)
+- 📊 **Rate limit**: Discord API rate limit'lerine dikkat edin
+- 💾 **Ayarlar geçici**: Bot yeniden başlatılınca ayarlar kaybolur (kalıcı kayıt için database kullanın)
+
+## 📝 Lisans
+
+Bu proje açık kaynaklıdır ve serbestçe kullanılabilir.
+
+## 🤝 Katkıda Bulunma
+
+Hataları bildirin veya yeni özellikler önerin!
+
+## 📞 Destek
+
+Sorun yaşıyorsanız:
+1. README'yi tekrar okuyun
+2. Ayarlarınızı `/ayarlar` ile kontrol edin
+3. Bot loglarını kontrol edin
+4. Bot yetkilerini kontrol edin
+
+---
+
+**💖 İyi kullanımlar!**
+
+Bot Versiyonu: 1.0
+Son Güncelleme: 2024
